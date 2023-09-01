@@ -1,3 +1,30 @@
 #index:
 #    path: /
 #    controller: App\Controller\DefaultController::index
+module_ajouter:
+  path: /module/ajouter
+  controller: App\Controller\ModuleController::ajouterModule
+
+module_list:
+  path: /module
+  controller: App\Controller\ModuleController::listModules
+
+module_details:
+  path: /module/{id}
+  controller: App\Controller\ModuleController::moduleDetails
+
+module_luminosity:
+  path: /module/{id}/luminosity
+  controller: App\Controller\ModuleController::luminosityData
+
+module_delete:
+  path: "/module/delete/{id}"
+  controller: 'App\Controller\ModuleController::deleteModule'
+
+delete_luminosity_data:
+  path: /module/{module_id}/luminosity/{data_id}/delete
+  controller: App\Controller\ModuleController::deleteLuminosityData
+
+chart_page:
+  path: /module/{id}/chart
+  controller: App\Controller\ModuleController::showChart

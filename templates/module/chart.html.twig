@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<h1>Graphique d'Évolution de la Luminosité</h1>
+	<canvas id="myChart" width="400" height="200"></canvas>
+
+	<script>
+		const ctx = document.getElementById('myChart').getContext('2d');
+const timestamps = {{ timestamps|raw }};
+const values = {{ values|raw }};
+
+new Chart(ctx, {
+type: 'line',
+data: {
+labels: timestamps,
+datasets: [
+{
+label: 'Valeur de Luminosité',
+data: values,
+borderColor: 'rgb(75, 192, 192)',
+fill: false
+}
+]
+},
+options: { // Options de configuration du graphique
+}
+});
+	</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{# templates/module/luminosity_data.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<div
+		class="container-fluid">
+
+		<!-- Page Heading -->
+		<h1 class="h3 mb-2 text-gray-800">Données de Luminosité du module :
+			{{ module.name }}</h1>
+
+		<!-- DataTables Example -->
+		<div class="card shadow mb-4">
+			<div class="card-header py-3">
+				<h6 class="m-0 font-weight-bold text-primary">Données de Luminosité</h6>
+			</div>
+			<div class="card-body">
+				<div class="table-responsive">
+					<table class="table table-bordered dataTable" id="dataTable" width="100%" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 100%;">
+						<thead>
+							<tr
+								role="row">
+								<!-- Ajoutez les en-têtes de colonne pour les données de luminosité -->
+								<th>Date</th>
+								<th>Valeur de Luminosité</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							<!-- Intégrez les lignes de données de luminosité ici -->
+							{% for data in luminosityData %}
+								<tr>
+									<td>{{ data.timestamp|date('d/m/Y H:i:s') }}</td>
+									<td>{{ data.value }}</td>
+									<td>
+										<form method="post" action="{{ path('delete_luminosity_data', {'module_id': module.id, 'data_id': data.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer cette donnée de luminosité ?');">
+											<button type="submit" class="btn btn-danger">Supprimer</button>
+										</form>
+									</td>
+								</tr>
+							{% endfor %}
+							<!-- Fin des lignes de données de luminosité -->
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<h2 class="h4 text-gray-800">Ajouter des données de luminosité</h2>
+		{{ form_start(luminosityForm) }}
+		<div class="form-group">
+			{{ form_row(luminosityForm.value, {'attr': {'class': 'form-control'}}) }}
+		</div>
+		<button type="submit" class="btn btn-primary">Ajouter</button>
+		{{ form_end(luminosityForm) }}
+
+		<h2 class="h4 text-gray-800">Générer des données aléatoires</h2>
+		<form method="post" action="{{ path('generate_random_data', {'id': module.id}) }}">
+			<button type="submit" class="btn btn-primary">Générer</button>
+		</form>
+
+
+		<h2 class="h4 text-gray-800">Graphique d'Évolution de la Luminosité</h2>
+
+		<!-- Chart Section -->
+		<div class="col-xl-8 col-lg-7">
+			<div class="card shadow mb-4">
+				<div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+					<h6 class="m-0 font-weight-bold text-primary">Graphique d'Évolution de la Luminosité</h6>
+					<div class="dropdown no-arrow"></div>
+				</div>
+				<div class="card-body">
+					<div class="chart-area">
+						<canvas id="myChart"></canvas>
+					</div>
+					<input type="date" id="startdate" onchange="filterData()" value="2023-08-30">
+					<input type="date" id="enddate" onchange="filterData()" value="2023-12-30">
+				</div>
+			</div>
+		</div>
+
+		<!-- Additional Chart Section -->
+		<div style="width: 400px;">
+			<canvas id="" width="500" height="300"></canvas>
+		</div>
+
+		<script>
+			const ctx = document.getElementById('myChart').getContext('2d');
+const timestamps = {{ timestamps|raw }}; // labels
+const values = {{ values|raw }}; // datapoints
+
+const myChart = new Chart(ctx, {
+type: 'line',
+data: {
+labels: timestamps,
+datasets: [
+{
+label: 'Valeur de Luminosité',
+data: values,
+borderColor: 'rgb(75, 192, 192)',
+fill: false
+}
+]
+},
+options: {}
+});
+
+function filterData() {
+const startDate = new Date(document.getElementById('startdate').value).getTime();
+const endDate = new Date(document.getElementById('enddate').value).getTime();
+
+filteredTimestamps = timestamps.filter((timestamp, index) => {
+const timestampDate = new Date(timestamp).getTime();
+return timestampDate >= startDate && timestampDate <= endDate;
+});
+
+filteredValues = values.slice(0, filteredTimestamps.length);
+
+myChart.data.labels = filteredTimestamps;
+myChart.data.datasets[0].data = filteredValues;
+myChart.update();
+}
+		</script>
+	{% endblock %}
