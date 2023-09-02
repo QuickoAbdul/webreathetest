@@ -47,19 +47,26 @@
 			</div>
 		</div>
 
-		<h2 class="h4 text-gray-800">Ajouter des données de luminosité</h2>
-		{{ form_start(luminosityForm) }}
-		<div class="form-group">
-			{{ form_row(luminosityForm.value, {'attr': {'class': 'form-control'}}) }}
+		<div class="row align-items-start">
+
+			<div class="col mb-4">
+				<h2 class="h4 text-gray-800">Ajouter des données de luminosité</h2>
+				{{ form_start(luminosityForm) }}
+				<div class="form-group">
+					{{ form_row(luminosityForm.value, {'attr': {'class': 'form-control'}}) }}
+					{{ form_row(luminosityForm.timestamp, {'attr': {'class': 'form-control'}}) }}
+
+				</div>
+				<button type="submit" class="btn btn-primary">Ajouter</button>
+				{{ form_end(luminosityForm) }}
+			</div>
+			<div class="col mb-4">
+				<h2 class="h4 text-gray-800">Générer des données aléatoires</h2>
+				<form method="post" action="{{ path('generate_random_data', {'id': module.id}) }}">
+					<button type="submit" class="btn btn-primary">Générer</button>
+				</form>
+			</div>
 		</div>
-		<button type="submit" class="btn btn-primary">Ajouter</button>
-		{{ form_end(luminosityForm) }}
-
-		<h2 class="h4 text-gray-800">Générer des données aléatoires</h2>
-		<form method="post" action="{{ path('generate_random_data', {'id': module.id}) }}">
-			<button type="submit" class="btn btn-primary">Générer</button>
-		</form>
-
 
 		<h2 class="h4 text-gray-800">Graphique d'Évolution de la Luminosité</h2>
 
@@ -88,16 +95,27 @@
 		<script>
 			const ctx = document.getElementById('myChart').getContext('2d');
 const timestamps = {{ timestamps|raw }}; // labels
-const values = {{ values|raw }}; // datapoints
+const values = {{ values|raw }};
+// datapoints
+
+// Créez un tableau d'objets contenant à la fois les timestamps et les valeurs
+const dataPoints = timestamps.map((timestamp, index) => ({timestamp: timestamp, value: values[index]}));
+
+// Assurez-vous que les données sont triées par ordre de date
+dataPoints.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+// Extrayez les timestamps triés et les valeurs triées
+const sortedTimestamps = dataPoints.map(dataPoint => dataPoint.timestamp);
+const sortedValues = dataPoints.map(dataPoint => dataPoint.value);
 
 const myChart = new Chart(ctx, {
 type: 'line',
 data: {
-labels: timestamps,
+labels: sortedTimestamps, // Utilisez les timestamps triés
 datasets: [
 {
 label: 'Valeur de Luminosité',
-data: values,
+data: sortedValues, // Utilisez les valeurs triées
 borderColor: 'rgb(75, 192, 192)',
 fill: false
 }
@@ -110,12 +128,15 @@ function filterData() {
 const startDate = new Date(document.getElementById('startdate').value).getTime();
 const endDate = new Date(document.getElementById('enddate').value).getTime();
 
-filteredTimestamps = timestamps.filter((timestamp, index) => {
-const timestampDate = new Date(timestamp).getTime();
+// Filtrez les données en fonction de la plage de dates sélectionnée
+const filteredDataPoints = dataPoints.filter(dataPoint => {
+const timestampDate = new Date(dataPoint.timestamp).getTime();
 return timestampDate >= startDate && timestampDate <= endDate;
 });
 
-filteredValues = values.slice(0, filteredTimestamps.length);
+// Extrayez les timestamps triés et les valeurs triées des données filtrées
+const filteredTimestamps = filteredDataPoints.map(dataPoint => dataPoint.timestamp);
+const filteredValues = filteredDataPoints.map(dataPoint => dataPoint.value);
 
 myChart.data.labels = filteredTimestamps;
 myChart.data.datasets[0].data = filteredValues;

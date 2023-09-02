@@ -24,7 +24,3 @@ module_delete:
 delete_luminosity_data:
   path: /module/{module_id}/luminosity/{data_id}/delete
   controller: App\Controller\ModuleController::deleteLuminosityData
-
-chart_page:
-  path: /module/{id}/chart
-  controller: App\Controller\ModuleController::showChart

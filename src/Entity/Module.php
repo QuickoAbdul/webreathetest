@@ -76,7 +76,7 @@ class Module
         $this->status = $status;
 
         return $this;
-    }
+    }   
 
     /**
      * @return Collection<int, LuminosityData>

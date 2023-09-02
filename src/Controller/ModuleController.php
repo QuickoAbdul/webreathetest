@@ -11,10 +11,19 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\ModuleType;
-        
+use Symfony\Component\HttpFoundation\Response;
 
 class ModuleController extends AbstractController
 {
+
+    /**
+     * @Route("/", name="index")
+     */
+    public function index(): Response
+    {
+        return $this->render('index.html.twig',); // Affiche la page d'accueil localhost:8000
+    }
+
     /**
      * @Route("/module/ajouter", name="module_ajouter")
      */
@@ -33,21 +42,25 @@ class ModuleController extends AbstractController
             // Générer et enregistrer des données de luminosité simulées
             $luminosityData = new LuminosityData();
             $luminosityData->setModule($module);
-            $luminosityData->setTimestamp(new \DateTime());
+            $luminosityData->setTimestamp(new \DateTime()); // Date actuelle
             $luminosityData->setValue(random_int(0, 100)); // Valeur aléatoire pour la luminosité
             $entityManager->persist($luminosityData);
             $entityManager->flush();
 
-            return $this->redirectToRoute('accueil'); // redirigez où vous voulez
+            return $this->redirectToRoute('module_list');
         }
 
-        return $this->render('module/form.html.twig', [
+        return $this->render('module/ajouter.html.twig', [
             'form' => $form->createView(),
         ]);
     }
-    
 
-    public function listModules()
+
+
+    /**
+     * @Route("/module", name="module_list")
+     */
+    public function listModules() // Affiche la liste des modules
     {
         $modules = $this->getDoctrine()->getRepository(Module::class)->findAll();
 
@@ -56,7 +69,10 @@ class ModuleController extends AbstractController
         ]);
     }
 
-    public function moduleDetails($id)
+    /**
+     * @Route("/module/{id}", name="module_details")
+     */
+    public function moduleDetails($id) // Affiche les détails d'un module
     {
         $module = $this->getDoctrine()->getRepository(Module::class)->find($id);
 
@@ -69,39 +85,42 @@ class ModuleController extends AbstractController
         ]);
     }
 
-    public function luminosityData($id, Request $request)
+    /**
+     * @Route("/module/{id}/luminosity", name="module_luminosity")
+     */
+    public function luminosityData($id, Request $request) // Affiche les données de luminosité détaillé d'un module
     {
         $entityManager = $this->getDoctrine()->getManager();
+        $module = $entityManager->getRepository(Module::class)->find($id);
 
-    $module = $entityManager->getRepository(Module::class)->find($id);
+        if (!$module) {
+            throw $this->createNotFoundException('Module introuvable');
+        }
 
-    if (!$module) {
-        throw $this->createNotFoundException('Module introuvable');
-    }
+        $luminosityData = $module->getLuminosityData();
 
-    $luminosityData = $module->getLuminosityData();
+        $newLuminosityData = new LuminosityData();
+        $luminosityForm = $this->createForm(LuminosityDataType::class, $newLuminosityData);
 
-    $newLuminosityData = new LuminosityData();
-    $luminosityForm = $this->createForm(LuminosityDataType::class, $newLuminosityData);
+        $luminosityForm->handleRequest($request);
+ 
+        // Si le formulaire est soumis et valide, enregistrez les données de luminosité et pousser vers la BDD
+        if ($luminosityForm->isSubmitted() && $luminosityForm->isValid()) {
+            $newLuminosityData->setModule($module);
+            $entityManager->persist($newLuminosityData);
+            $entityManager->flush();
 
-    $luminosityForm->handleRequest($request);
+            return $this->redirectToRoute('module_luminosity', ['id' => $id]);
+        }
 
-    if ($luminosityForm->isSubmitted() && $luminosityForm->isValid()) {
-        $newLuminosityData->setModule($module);
-        $newLuminosityData->setTimestamp(new \DateTime()); // Utilisez l'heure actuelle
-        $entityManager->persist($newLuminosityData);
-        $entityManager->flush();
-
-        return $this->redirectToRoute('module_luminosity', ['id' => $id]);
-    }
-
-    return $this->render('module/luminosity_data.html.twig', [
-        'module' => $module,
-        'luminosityData' => $luminosityData,
-        'luminosityForm' => $luminosityForm->createView(),
-        'timestamps' => $this->getTimestamps($luminosityData),
-        'values' => $this->getValues($luminosityData),
-    ]);
+        // Afficher la page avec les données de luminosité, le formulaire pour ajouter des nouvelles données, et les variables pour le graphique
+        return $this->render('module/luminosity_data.html.twig', [
+            'module' => $module,
+            'luminosityData' => $luminosityData,
+            'luminosityForm' => $luminosityForm->createView(),
+            'timestamps' => $this->getTimestamps($luminosityData),
+            'values' => $this->getValues($luminosityData),
+        ]);
     }
 
     private function getTimestamps($luminosityData)
@@ -138,20 +157,20 @@ class ModuleController extends AbstractController
         $randomTimestamp = new \DateTime();
         $randomTimestamp->modify('-' . random_int(1, 365) . ' days'); // Génère une date aléatoire dans les 365 derniers jours
 
+        // Enregistrez les données de luminosité dans la BDD et push
         $luminosityData = new LuminosityData();
         $luminosityData->setModule($module);
         $luminosityData->setTimestamp($randomTimestamp);
         $luminosityData->setValue($randomValue);
-
         $entityManager->persist($luminosityData);
         $entityManager->flush();
 
         return $this->redirectToRoute('module_luminosity', ['id' => $id]);
     }
 
-/**
- * @Route("/module/{module_id}/luminosity/{data_id}/delete", name="delete_luminosity_data")
- */
+    /**
+     * @Route("/module/{module_id}/luminosity/{data_id}/delete", name="delete_luminosity_data")
+     */
     public function deleteLuminosityData($module_id, $data_id)
     {
         $entityManager = $this->getDoctrine()->getManager();
@@ -171,31 +190,27 @@ class ModuleController extends AbstractController
         
         return $this->redirectToRoute('module_luminosity', ['id' => $module_id]);
     }
-    public function showChart($id)
+
+    /**
+     * @Route("/module/{id}/turn-off-random", name="module_turn_off_random")
+     */
+    public function turnOffRandomModule($id)
     {
         $entityManager = $this->getDoctrine()->getManager();
         $module = $entityManager->getRepository(Module::class)->find($id);
 
         if (!$module) {
-            throw $this->createNotFoundException('Module introuvable');
+            throw $this->createNotFoundException('Module not found');
         }
 
-        $luminosityData = $module->getLuminosityData();
+        // Générez aléatoirement l'état "Inactif" ou "Actif"
+        $randomStatus = rand(0, 1) == 1 ? 'inactif' : 'actif';
 
-        $timestamps = [];
-        $values = [];
+        // Mettre à jour l'état du module
+        $module->setStatus($randomStatus);
+        $entityManager->flush();
 
-        foreach ($luminosityData as $data) {
-            $timestamps[] = $data->getTimestamp()->format('Y-m-d H:i:s');
-            $values[] = $data->getValue();
-        }
-
-        return $this->render('module/chart.html.twig', [
-            'module' => $module,
-            'timestamps' => json_encode($timestamps),
-            'values' => json_encode($values),
-        ]);
+        return $this->redirectToRoute('module_details', ['id' => $id]);
     }
 
-    
 }

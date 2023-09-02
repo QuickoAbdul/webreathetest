@@ -12,21 +12,31 @@
 		<!-- Content Row -->
 		<div class="row">
 			<div class="col-lg-6">
-				<div class="card mb-4 py-3 border-bottom-primary">
-					<div class="card-body">
-						<h2 class="h4 text-gray-800">Nom :</h2>
-						<p class="text-gray-900">{{ module.name }}</p>
-						<h2 class="h4 text-gray-800">Numéro de Série :</h2>
-						<p class="text-gray-900">{{ module.serialNumber }}</p>
-						<h2 class="h4 text-gray-800">État :</h2>
-						<p class="text-gray-900">{{ module.status }}</p>
-						<a href="{{ path('module_luminosity', {'id': module.id}) }}" class="btn btn-primary btn-icon-split">
-							<span class="icon text-white-50">
-								<i class="fas fa-chart-area"></i>
-							</span>
-							<span class="text">Voir les données de luminosité</span>
-						</a>
+
+				{% if module.status == 'inactif' %}
+					<div class="card mb-4 py-3 border-bottom-danger">
+					{% else %}
+						<div class="card mb-4 py-3 border-bottom-primary">
+						{% endif %}
+
+
+						<div class="card-body">
+							<h2 class="h4 text-gray-800">Nom :</h2>
+							<p class="text-gray-900">{{ module.name }}</p>
+							<h2 class="h4 text-gray-800">Numéro de Série :</h2>
+							<p class="text-gray-900">{{ module.serialNumber }}</p>
+							<h2 class="h4 text-gray-800">État :</h2>
+							<p class="text-gray-900">{{ module.status }}</p>
+							<a href="{{ path('module_turn_off_random', {'id': module.id}) }}" class="btn btn-danger">
+								Changer l'état aléatoirement
+							</a>
+							<a href="{{ path('module_luminosity', {'id': module.id}) }}" class="btn btn-primary btn-icon-split">
+								<span class="icon text-white-50">
+									<i class="fas fa-chart-area"></i>
+								</span>
+								<span class="text">Voir les données de luminosité</span>
+							</a>
+						</div>
 					</div>
 				</div>
-			</div>
-		{% endblock %}
+			{% endblock %}
