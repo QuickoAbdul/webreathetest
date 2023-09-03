@@ -19,16 +19,13 @@
 				<div class="table-responsive">
 					<table class="table table-bordered dataTable" id="dataTable" width="100%" cellspacing="0" role="grid" aria-describedby="dataTable_info" style="width: 100%;">
 						<thead>
-							<tr
-								role="row">
-								<!-- Ajoutez les en-têtes de colonne pour les données de luminosité -->
+							<tr role="row">
 								<th>Date</th>
 								<th>Valeur de Luminosité</th>
 								<th>Actions</th>
 							</tr>
 						</thead>
 						<tbody>
-							<!-- Intégrez les lignes de données de luminosité ici -->
 							{% for data in luminosityData %}
 								<tr>
 									<td>{{ data.timestamp|date('d/m/Y H:i:s') }}</td>
@@ -40,7 +37,6 @@
 									</td>
 								</tr>
 							{% endfor %}
-							<!-- Fin des lignes de données de luminosité -->
 						</tbody>
 					</table>
 				</div>
@@ -98,24 +94,21 @@ const timestamps = {{ timestamps|raw }}; // labels
 const values = {{ values|raw }};
 // datapoints
 
-// Créez un tableau d'objets contenant à la fois les timestamps et les valeurs
 const dataPoints = timestamps.map((timestamp, index) => ({timestamp: timestamp, value: values[index]}));
 
-// Assurez-vous que les données sont triées par ordre de date
 dataPoints.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-// Extrayez les timestamps triés et les valeurs triées
 const sortedTimestamps = dataPoints.map(dataPoint => dataPoint.timestamp);
 const sortedValues = dataPoints.map(dataPoint => dataPoint.value);
 
 const myChart = new Chart(ctx, {
 type: 'line',
 data: {
-labels: sortedTimestamps, // Utilisez les timestamps triés
+labels: sortedTimestamps,
 datasets: [
 {
 label: 'Valeur de Luminosité',
-data: sortedValues, // Utilisez les valeurs triées
+data: sortedValues,
 borderColor: 'rgb(75, 192, 192)',
 fill: false
 }
@@ -128,13 +121,11 @@ function filterData() {
 const startDate = new Date(document.getElementById('startdate').value).getTime();
 const endDate = new Date(document.getElementById('enddate').value).getTime();
 
-// Filtrez les données en fonction de la plage de dates sélectionnée
 const filteredDataPoints = dataPoints.filter(dataPoint => {
 const timestampDate = new Date(dataPoint.timestamp).getTime();
 return timestampDate >= startDate && timestampDate <= endDate;
 });
 
-// Extrayez les timestamps triés et les valeurs triées des données filtrées
 const filteredTimestamps = filteredDataPoints.map(dataPoint => dataPoint.timestamp);
 const filteredValues = filteredDataPoints.map(dataPoint => dataPoint.value);
 
