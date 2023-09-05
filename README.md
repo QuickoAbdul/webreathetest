@@ -20,5 +20,3 @@ Symfony 5.5.6
 
 If the page is blank, go to Localhost:8000/module
 
-https://github.com/QuickoAbdul/webreathetest/assets/90459692/3a22e3cb-354d-4597-8a15-4e293325c0d2
-
